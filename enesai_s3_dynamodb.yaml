@@ -32,7 +32,7 @@ Parameters:
   
   Owner:
     Type: String
-    Default: 'max'
+    Default: 'mivashko@enesai.io'
   
   TimeOfCreation: 
     Type: String
