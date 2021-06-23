@@ -1,0 +1,115 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This cf template creates private s3 bucket for tfstate file, with aes256 encription, enabled versioning, deletion policy as retained and dbtable for tfstate lock.
+
+Parameters:
+
+  S3BucketName:
+    Type: String
+    Default: 'svcs-infra-ue1-s3-tfst-001'
+  
+  Environment:
+    Type: String
+    Default: 'prod'
+  
+  Name:
+    Type: String
+    Default: 'svcs-infra-ue1-s3-tfst-001'
+  
+  ProjectName:
+    Type: String
+    Default: 'enesai'
+  
+  Owner:
+    Type: String
+    Default: 'mivashko@enesai.io'
+  
+  Team:
+    Type: String
+    Default: 'infra'
+
+  GitUrl:
+    Type: String
+    Default: ''
+    
+  DbTableName: 
+    Type: String
+    Default: 'svcs-infra-ue1-ddb-tfst-001'
+  
+  ManagedBy:
+    Type: String
+    Default: "cf"
+
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !Ref S3BucketName
+      VersioningConfiguration:
+        Status: Enabled  
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Name
+          Value: !Ref Name
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: ManagedBy
+          Value: !Ref ManagedBy
+        - Key: Owner
+          Value: !Ref Owner
+        - Key: Team
+          Value: !Ref Team 
+        - Key: GitUrl
+          Value: !Ref GitUrl
+        
+        
+    DeletionPolicy: Retain 
+
+  TerraformStateLockDynamoDBTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: !Ref DbTableName
+      AttributeDefinitions:
+        - AttributeName: LockID
+          AttributeType: S
+      KeySchema:
+        - AttributeName: LockID
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+      SSESpecification:
+        SSEEnabled: true
+      Tags:
+        - Key: Name
+          Value: !Ref DbTableName
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: ManagedBy
+          Value: !Ref ManagedBy
+        - Key: Owner
+          Value: !Ref Owner
+        - Key: Team
+          Value: !Ref Team 
+        - Key: GitUrl
+          Value: !Ref GitUrl
+      
+Outputs:
+  BucketName:
+    Value: !Ref S3BucketName
+    Description: S3 Bucket  for Terraform state 
+  DbTableName:
+    Value: !Ref DbTableName
+    Description: DbTable for terraform state lock
