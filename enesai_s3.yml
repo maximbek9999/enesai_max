@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: This cf template creates private s3 bucket, with aes256 encription, enabled versioning and deletion policy as retained.
+
+Parameters:
+
+  S3BucketName:
+    Type: String
+    Default: 'svcs-infra-ue1-s3-cf-001'
+  
+  Environment:
+    Type: String
+    Default: 'prod'
+  
+  Name:
+    Type: String
+    Default: 'svcs-infra-ue1-s3-tfst-003'
+  
+  ProjectName:
+    Type: String
+    Default: 'enesai'
+  
+  Owner:
+    Type: String
+    Default: 'mivashko@enesai.io'
+  
+  Team:
+    Type: String
+    Default: 'infra'
+
+  GitUrl:
+    Type: String
+    Default: ''
+    
+  ManagedBy:
+    Type: String
+    Default: "cf"
+
+Resources:
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      AccessControl: Private
+      BucketName: !Ref S3BucketName
+      VersioningConfiguration:
+        Status: Enabled  
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Name
+          Value: !Ref Name
+        - Key: Environment
+          Value: !Ref Environment
+        - Key: ProjectName
+          Value: !Ref ProjectName
+        - Key: ManagedBy
+          Value: !Ref ManagedBy
+        - Key: Owner
+          Value: !Ref Owner
+        - Key: Team
+          Value: !Ref Team 
+        - Key: GitUrl
+          Value: !Ref GitUrl
+        
+    DeletionPolicy: Retain 
+      
+Outputs:
+  BucketName:
+    Value: !Ref S3BucketName
+    Description: S3 Bucket for cf tamplates
+  
